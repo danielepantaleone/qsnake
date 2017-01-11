@@ -27,18 +27,41 @@
 
 Game::Game(Board &b, QObject *parent)
     : QObject(parent),
+      paused(true),
       speed(1),
       board(b),
+      food(new Food()),
       snake(new Snake()),
       timer(new QTimer(this)) {
     board.addItem(snake);
+    board.addItem(food);
     board.installEventFilter(this);
+    food->move(snake->trail());
     connect(timer, SIGNAL(timeout()), this, SLOT(frame()));
     timer->setInterval(FRAME_MSEC);
     timer->start();
 }
 
 Game::~Game() {}
+
+/**
+ * Tells whether the game is paused.
+ *
+ * @return True if the Game is paused, False otherwise.
+ */
+bool Game::isPaused() {
+    return paused;
+}
+
+/**
+ * Set the Game paused status.
+ *
+ * @param p bool
+ */
+void Game::setPaused(bool p) {
+    paused = p;
+}
+
 
 /**
  * Filter intercepted events.
@@ -51,9 +74,8 @@ bool Game::eventFilter(QObject *o, QEvent *e) {
     if (e->type() == QEvent::KeyPress) {
         keyPressEvent((QKeyEvent *)e);
         return true;
-    } else {
-        return QObject::eventFilter(o, e);
     }
+    return QObject::eventFilter(o, e);
 }
 
 /**
@@ -75,6 +97,8 @@ void Game::keyPressEvent(QKeyEvent *e) {
         case Qt::Key_Down:
             snake->setDirection(DirectionDown);
             break;
+        case Qt::Key_Space:
+            setPaused(!paused);
         default:
             break;
     }
@@ -85,5 +109,11 @@ void Game::keyPressEvent(QKeyEvent *e) {
  * This slots take care of advancing the game and updating the game UI.
  */
 void Game::frame() {
-    snake->move();
+    if (!paused) {
+        snake->move();
+        if (snake->eat(food)) {
+            snake->grow();
+            food->move(snake->trail());
+        }
+    }
 }

@@ -27,6 +27,7 @@ Snake::Snake() {
     m_direction = DirectionRight;
     for (int i = 0; i < SNAKE_INITIAL_LENGTH; i++)
         m_trail.append(QPointF(SNAKE_INITIAL_X - i, SNAKE_INITIAL_Y));
+    setZValue(1.0);
 }
 
 Snake::~Snake() {}
@@ -41,9 +42,36 @@ Direction Snake::direction() {
 }
 
 /**
+ * Let the current Snake eat the given food if necessary.
+ *
+ * @param f
+ * @return
+ */
+bool Snake::eat(Food *f) {
+    return head() == f->gridPos();
+}
+
+/**
+ * Returns a QPointF which is the head of the Snake in the board.
+ *
+ * @return QPointF
+ */
+QPointF Snake::head() {
+    return m_trail.front();
+}
+
+/**
+ * Increase the size of the Snake.
+ */
+void Snake::grow() {
+    m_trail.append(QPointF(m_trail.back()));
+}
+
+/**
  * Move the snake in the board by one cell.
  */
 void Snake::move() {
+    prepareGeometryChange();
     m_trail.removeLast();
     switch (m_direction) {
         case DirectionLeft:
@@ -59,7 +87,6 @@ void Snake::move() {
             m_trail.prepend(QPointF(m_trail.front()) + QPointF(0, +1));
             break;
     }
-    prepareGeometryChange();
 }
 
 /**
@@ -68,36 +95,40 @@ void Snake::move() {
  * @param d Direction
  */
 void Snake::setDirection(Direction direction) {
-
     if (direction == DirectionRight) {
         if (m_direction == DirectionLeft)
             return;
         if (m_trail.front().x() == BOARD_CELL_COUNT_X - 1)
             return;
     }
-
     if (direction == DirectionLeft) {
         if (m_direction == DirectionRight)
             return;
         if (m_trail.front().x() == BOARD_ORIGIN_X)
             return;
     }
-
     if (direction == DirectionDown) {
         if (m_direction == DirectionUp)
             return;
         if (m_trail.front().y() == BOARD_CELL_COUNT_Y - 1)
             return;
     }
-
     if (direction == DirectionUp) {
         if (m_direction == DirectionDown)
             return;
         if (m_trail.front().y() == BOARD_ORIGIN_Y)
             return;
     }
-
     m_direction = direction;
+}
+
+/**
+ * Returns a pointer to the Snake trail QList.
+ *
+ * @return QList<QPointF> *
+ */
+QList<QPointF> * Snake::trail() {
+    return &m_trail;
 }
 
 /**

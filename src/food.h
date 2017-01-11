@@ -17,16 +17,34 @@
  * along with Foobar. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef QSNAKE_FOOD_H
+#define QSNAKE_FOOD_H
 
-#include "qsnake.h"
+#include "constants.h"
 
-#include <QApplication>
-#include <QTime>
+#include <QGraphicsItem>
+#include <QRectF>
 
-int main(int argc, char *argv[]) {
-    qsrand((uint)QTime::currentTime().msec());
-    QApplication a(argc, argv);
-    QSnake qsnake;
-    qsnake.show();
-    return a.exec();
-}
+
+class Food : public QGraphicsItem {
+
+    public:
+
+        Food();
+        ~Food();
+
+        QRectF boundingRect() const;
+        QPainterPath shape() const;
+        void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
+
+        QPointF gridPos();
+        void move(QList<QPointF> *denied);
+        void setGridPos(QPointF p);
+
+    private:
+
+        QPointF m_gridPos;
+
+};
+
+#endif //QSNAKE_FOOD_H

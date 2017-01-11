@@ -31,6 +31,7 @@ const int       BOARD_ORIGIN_X          = 0;
 const int       BOARD_ORIGIN_Y          = 0;
 const int       BOARD_HEIGHT            = BOARD_CELL_PIXEL_SIZE * BOARD_CELL_COUNT_Y;
 const int       BOARD_WIDTH             = BOARD_CELL_PIXEL_SIZE * BOARD_CELL_COUNT_X;
+const QBrush    FOOD_FOREGROUND_BRUSH   = QBrush(QColor(121, 123, 89, 255));
 const int       FRAME_MSEC              = 50;
 const QBrush    SNAKE_FOREGROUND_BRUSH  = QBrush(QColor(0, 25, 0, 255));
 const int       SNAKE_INITIAL_LENGTH    = 4;

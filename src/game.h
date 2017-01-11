@@ -21,6 +21,7 @@
 #define QSNAKE_GAME_H
 
 #include "board.h"
+#include "food.h"
 #include "snake.h"
 
 #include <QGraphicsScene>
@@ -36,6 +37,9 @@ class Game : public QObject {
         Game(Board &b, QObject *parent = 0);
         ~Game();
 
+        bool isPaused();
+        void setPaused(bool p);
+
     public slots:
 
         void frame();
@@ -47,8 +51,10 @@ class Game : public QObject {
 
     private:
 
+        bool paused;
         int speed;
         Board &board;
+        Food *food;
         Snake *snake;
         QTimer *timer;
 };

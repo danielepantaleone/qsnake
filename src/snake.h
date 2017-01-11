@@ -21,6 +21,7 @@
 #define QSNAKE_SNAKE_H
 
 #include "constants.h"
+#include "food.h"
 
 #include <QGraphicsItem>
 #include <QRectF>
@@ -33,9 +34,14 @@ class Snake : public QGraphicsItem {
         Snake();
         ~Snake();
 
+        QPointF head();
         Direction direction();
+        bool eat(Food *f);
+        void grow();
         void move();
         void setDirection(Direction direction);
+
+        QList<QPointF> * trail();
 
         QRectF boundingRect() const;
         QPainterPath shape() const;
