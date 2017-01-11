@@ -19,14 +19,13 @@
 
 #include "board.h"
 #include "constants.h"
+#include "food.h"
 #include "snake.h"
 
 #include <QPainter>
 
-Snake::Snake() {
-    m_direction = DirectionRight;
-    for (int i = 0; i < SNAKE_INITIAL_LENGTH; i++)
-        m_trail.append(QPointF(SNAKE_INITIAL_X - i, SNAKE_INITIAL_Y));
+Snake::Snake(Game *g) : game(g) {
+    reset();
     setZValue(1.0);
 }
 
@@ -39,6 +38,22 @@ Snake::~Snake() {}
  */
 Direction Snake::direction() {
     return m_direction;
+}
+
+/**
+ * Detect possible Snake collision on the given point.
+ *
+ * @return True if the Snake will collide with itself or the Board limits, False otherwise;
+ */
+bool Snake::collision(QPointF p) {
+    if (p.x() < BOARD_ORIGIN_X || p.x() >= BOARD_CELL_COUNT_X)
+        return true;
+    if (p.y() < BOARD_ORIGIN_Y || p.y() >= BOARD_CELL_COUNT_Y)
+        return true;
+    for (int i = 1; i < m_trail.size(); i++)
+        if (p == m_trail.at(i))
+            return true;
+    return false;
 }
 
 /**
@@ -73,21 +88,39 @@ void Snake::grow() {
 void Snake::move() {
     prepareGeometryChange();
     m_trail.removeLast();
+    m_trail.prepend(nextPos());
+}
+
+/**
+ * Returns the Snake next position.
+ *
+ * @return QPointF
+ */
+QPointF Snake::nextPos() {
     switch (m_direction) {
         case DirectionLeft:
-            m_trail.prepend(QPointF(m_trail.front()) + QPointF(-1, 0));
-            break;
+            return QPointF(m_trail.front()) + QPointF(-1, 0);
         case DirectionUp:
-            m_trail.prepend(QPointF(m_trail.front()) + QPointF(0, -1));
-            break;
+            return QPointF(m_trail.front()) + QPointF(0, -1);
         case DirectionRight:
-            m_trail.prepend(QPointF(m_trail.front()) + QPointF(+1, 0));
-            break;
+            return QPointF(m_trail.front()) + QPointF(+1, 0);
         case DirectionDown:
-            m_trail.prepend(QPointF(m_trail.front()) + QPointF(0, +1));
-            break;
+            return QPointF(m_trail.front()) + QPointF(0, +1);
     }
+    return QPointF(m_trail.front());
 }
+
+
+/**
+ * Reset the Snake to its initial state.
+ */
+void Snake::reset() {
+    m_direction = DirectionRight;
+    m_trail.clear();
+    for (int i = 0; i < SNAKE_INITIAL_LENGTH; i++)
+        m_trail.append(QPointF(SNAKE_INITIAL_X - i, SNAKE_INITIAL_Y));
+}
+
 
 /**
  * Set the Snake direction.

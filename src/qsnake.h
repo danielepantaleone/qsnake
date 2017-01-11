@@ -49,11 +49,14 @@ class QSnake : public QMainWindow {
 
         void setupActions();
         void setupMenus();
+        void setupSlots();
         void setupUI();
 
     private slots:
 
         void newGame();
+        void onGameOver();
+        void onScore(int);
 
 };
 

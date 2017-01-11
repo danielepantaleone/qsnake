@@ -20,10 +20,11 @@
 #include "board.h"
 #include "constants.h"
 #include "food.h"
+#include "snake.h"
 
 #include <QPainter>
 
-Food::Food() {
+Food::Food(Game *g) : game(g) {
     setZValue(0.0);
 }
 
@@ -50,14 +51,14 @@ QPointF Food::gridPos() {
 /**
  * Move the food grid position according with the trail of the given Snake.
  *
- * @param denied A list of points where the food cannot be placed.
+ * @param s A pointer to the active Snake.
  */
-void Food::move(QList<QPointF> *denied) {
+void Food::move(Snake *s) {
     QPointF p;
     do {
         p.setX(qrand() % (BOARD_CELL_COUNT_X - BOARD_ORIGIN_X) + BOARD_ORIGIN_X);
         p.setY(qrand() % (BOARD_CELL_COUNT_X - BOARD_ORIGIN_X) + BOARD_ORIGIN_X);
-    } while(denied->contains(p));
+    } while(s->trail()->contains(p));
     setGridPos(p);
 }
 

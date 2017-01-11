@@ -20,6 +20,7 @@
 #ifndef QSNAKE_BOARD_H
 #define QSNAKE_BOARD_H
 
+#include <QFont>
 #include <QGraphicsScene>
 
 class Board : public QGraphicsScene {
@@ -33,6 +34,18 @@ class Board : public QGraphicsScene {
 
         static double mapToBoard(double v);
         static QRectF mapToBoard(QPointF p);
+
+        void setForeground(QString s);
+        QString &foreground();
+
+    protected:
+
+        void drawForeground(QPainter *painter, const QRectF &rect);
+
+    private:
+
+        QFont ff;
+        QString fg;
 
 };
 

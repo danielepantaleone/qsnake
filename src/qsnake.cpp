@@ -30,9 +30,11 @@
 QSnake::QSnake(QWidget *parent)
     : QMainWindow(parent),
       board(new Board(this)),
+      game(new Game(*board, this)),
       view(new QGraphicsView(board, this)) {
     setupActions();
     setupMenus();
+    setupSlots();
     setupUI();
 }
 
@@ -63,12 +65,21 @@ void QSnake::setupMenus() {
 }
 
 /**
+ * Initialize QSnake custom slots.
+ */
+void QSnake::setupSlots() {
+    connect(game, SIGNAL(gameOver()), this, SLOT(onGameOver()));
+    connect(game, SIGNAL(score(int)), this, SLOT(onScore(int)));
+}
+
+/**
  * Setup QSnake user interface.
  */
 void QSnake::setupUI() {
     board->setBackgroundBrush(BOARD_BACKGROUND_BRUSH);
     board->setSceneRect(BOARD_ORIGIN_X, BOARD_ORIGIN_Y, BOARD_WIDTH, BOARD_HEIGHT);
     board->setItemIndexMethod(Board::BspTreeIndex);
+    view->setCacheMode(QGraphicsView::CacheNone);
     view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     setAttribute(Qt::WA_QuitOnClose);
     setCentralWidget(view);
@@ -81,5 +92,22 @@ void QSnake::setupUI() {
  * Qt slot which triggers the start of a new game.
  */
 void QSnake::newGame() {
-    game = new Game(*board, this);
+    game->restart();
+}
+
+/**
+ * Qt slot which is triggered everytime the game ends.
+ */
+void QSnake::onGameOver() {
+    game->setFinished(true);
+    board->setForeground(QString("GAME OVER"));
+}
+
+/**
+ * Qt slot which is exevuted everytime the user score.
+ *
+ * @param score The amount of score.
+ */
+void QSnake::onScore(int s) {
+
 }

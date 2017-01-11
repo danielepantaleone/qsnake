@@ -20,13 +20,15 @@
 #ifndef QSNAKE_GAME_H
 #define QSNAKE_GAME_H
 
-#include "board.h"
-#include "food.h"
-#include "snake.h"
-
 #include <QGraphicsScene>
 #include <QObject>
 #include <QTimer>
+
+class Board;
+
+class Food;
+
+class Snake;
 
 class Game : public QObject {
 
@@ -37,12 +39,15 @@ class Game : public QObject {
         Game(Board &b, QObject *parent = 0);
         ~Game();
 
-        bool isPaused();
-        void setPaused(bool p);
+        void setFinished(bool f);
+        void pause();
+        void resume();
+        void restart();
 
-    public slots:
+    signals:
 
-        void frame();
+        void gameOver();
+        void score(int);
 
     protected:
 
@@ -51,12 +56,17 @@ class Game : public QObject {
 
     private:
 
+        bool finished;
         bool paused;
         int speed;
         Board &board;
         Food *food;
         Snake *snake;
         QTimer *timer;
+
+    private slots:
+
+        void frame();
 };
 
 #endif //QSNAKE_GAME_H

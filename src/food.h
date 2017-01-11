@@ -21,16 +21,18 @@
 #define QSNAKE_FOOD_H
 
 #include "constants.h"
+#include "game.h"
 
 #include <QGraphicsItem>
 #include <QRectF>
 
+class Snake;
 
 class Food : public QGraphicsItem {
 
     public:
 
-        Food();
+        Food(Game *g);
         ~Food();
 
         QRectF boundingRect() const;
@@ -38,11 +40,12 @@ class Food : public QGraphicsItem {
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
 
         QPointF gridPos();
-        void move(QList<QPointF> *denied);
+        void move(Snake *s);
         void setGridPos(QPointF p);
 
     private:
 
+        Game *game;
         QPointF m_gridPos;
 
 };

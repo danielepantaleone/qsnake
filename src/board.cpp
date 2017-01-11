@@ -20,9 +20,51 @@
 #include "constants.h"
 #include "board.h"
 
-Board::Board(QObject *parent) : QGraphicsScene(parent) {}
+#include <QFontDatabase>
+#include <QPainter>
+#include <QGraphicsView>
+
+Board::Board(QObject *parent) : QGraphicsScene(parent) {
+    ff = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    ff.setPointSize(14);
+}
 
 Board::~Board() {}
+
+
+/**
+ * Returns the reference to the current QString set as board foreground.
+ *
+ * @return QString*
+ */
+QString & Board::foreground() {
+    return fg;
+}
+
+/**
+ * Set the QString to be drawn as foreground.
+ *
+ * @param s The QString to draw.
+ */
+void Board::setForeground(QString s) {
+    fg = s;
+    update();
+}
+
+/**
+ * Draw the board foreground.
+ *
+ * @param painter The active QPainter.
+ * @param rect
+ */
+void Board::drawForeground(QPainter *painter, const QRectF &rect) {
+    if (!fg.isNull() && !fg.isEmpty()) {
+        painter->save();
+        painter->setFont(ff);
+        painter->drawText(rect, Qt::AlignCenter, fg);
+        painter->restore();
+    }
+}
 
 /**
  * Map the given value according with the board cell size.

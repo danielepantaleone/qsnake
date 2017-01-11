@@ -21,24 +21,28 @@
 #define QSNAKE_SNAKE_H
 
 #include "constants.h"
-#include "food.h"
+#include "game.h"
 
 #include <QGraphicsItem>
 #include <QRectF>
 
+class Food;
 
 class Snake : public QGraphicsItem {
 
     public:
 
-        Snake();
+        Snake(Game *g);
         ~Snake();
 
         QPointF head();
         Direction direction();
+        bool collision(QPointF p);
         bool eat(Food *f);
         void grow();
         void move();
+        void reset();
+        QPointF nextPos();
         void setDirection(Direction direction);
 
         QList<QPointF> * trail();
@@ -49,6 +53,7 @@ class Snake : public QGraphicsItem {
 
     private:
 
+        Game *game;
         Direction m_direction;
         QList<QPointF> m_trail;
 

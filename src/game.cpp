@@ -20,24 +20,27 @@
  */
 
 #include "constants.h"
+#include "board.h"
 #include "game.h"
+#include "food.h"
+#include "snake.h"
 
 #include <QEvent>
 #include <QKeyEvent>
 
 Game::Game(Board &b, QObject *parent)
     : QObject(parent),
+      finished(false),
       paused(true),
       speed(1),
       board(b),
-      food(new Food()),
-      snake(new Snake()),
+      snake(new Snake(this)),
+      food(new Food(this)),
       timer(new QTimer(this)) {
     board.addItem(snake);
     board.addItem(food);
     board.installEventFilter(this);
-    food->move(snake->trail());
-    connect(timer, SIGNAL(timeout()), this, SLOT(frame()));
+    food->move(snake);
     timer->setInterval(FRAME_MSEC);
     timer->start();
 }
@@ -45,23 +48,42 @@ Game::Game(Board &b, QObject *parent)
 Game::~Game() {}
 
 /**
- * Tells whether the game is paused.
- *
- * @return True if the Game is paused, False otherwise.
+ * Pause the game.
  */
-bool Game::isPaused() {
-    return paused;
+void Game::pause() {
+    disconnect(timer, SIGNAL(timeout()), this, SLOT(frame()));
+    paused = true;
 }
 
 /**
- * Set the Game paused status.
- *
- * @param p bool
+ * Resume the game.
  */
-void Game::setPaused(bool p) {
-    paused = p;
+void Game::resume() {
+    paused = false;
+    connect(timer, SIGNAL(timeout()), this, SLOT(frame()));
 }
 
+/**
+ * Restart the game.
+ */
+void Game::restart() {
+    snake->reset();
+    food->move(snake);
+    finished = false;
+    paused = true;
+    board.foreground().clear();
+}
+
+/**
+ * Set the game finished status.
+ *
+ * @param f bool
+ */
+void Game::setFinished(bool f) {
+    finished = f;
+    if (finished)
+        disconnect(timer, SIGNAL(timeout()), this, SLOT(frame()));
+}
 
 /**
  * Filter intercepted events.
@@ -84,24 +106,29 @@ bool Game::eventFilter(QObject *o, QEvent *e) {
  * @param e The corresponding QKeyEvent.
  */
 void Game::keyPressEvent(QKeyEvent *e) {
-    switch (e->key()) {
-        case Qt::Key_Left:
-            snake->setDirection(DirectionLeft);
-            break;
-        case Qt::Key_Right:
-            snake->setDirection(DirectionRight);
-            break;
-        case Qt::Key_Up:
-            snake->setDirection(DirectionUp);
-            break;
-        case Qt::Key_Down:
-            snake->setDirection(DirectionDown);
-            break;
-        case Qt::Key_Space:
-            setPaused(!paused);
-        default:
-            break;
+
+    if (e->key() == Qt::Key_Space)
+        paused ? resume() : pause();
+
+    if (!paused && !finished) {
+        switch (e->key()) {
+            case Qt::Key_Left:
+                snake->setDirection(DirectionLeft);
+                break;
+            case Qt::Key_Right:
+                snake->setDirection(DirectionRight);
+                break;
+            case Qt::Key_Up:
+                snake->setDirection(DirectionUp);
+                break;
+            case Qt::Key_Down:
+                snake->setDirection(DirectionDown);
+                break;
+            default:
+                break;
+        }
     }
+
 }
 
 /**
@@ -109,11 +136,16 @@ void Game::keyPressEvent(QKeyEvent *e) {
  * This slots take care of advancing the game and updating the game UI.
  */
 void Game::frame() {
-    if (!paused) {
-        snake->move();
-        if (snake->eat(food)) {
-            snake->grow();
-            food->move(snake->trail());
+    if (!paused && !finished) {
+        if (snake->collision(snake->nextPos())) {
+            emit gameOver();
+        } else {
+            snake->move();
+            if (snake->eat(food)) {
+                snake->grow();
+                food->move(snake);
+                emit score(9);
+            }
         }
     }
 }
