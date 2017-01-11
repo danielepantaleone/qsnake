@@ -26,7 +26,7 @@
 
 Board::Board(QObject *parent) : QGraphicsScene(parent) {
     ff = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    ff.setPointSize(14);
+    ff.setPointSize(BOARD_FONT_PIZEL_SIZE);
 }
 
 Board::~Board() {}
@@ -48,7 +48,7 @@ QString & Board::foreground() {
  */
 void Board::setForeground(QString s) {
     fg = s;
-    update();
+    invalidate(sceneRect(), Board::ForegroundLayer);
 }
 
 /**
@@ -59,10 +59,8 @@ void Board::setForeground(QString s) {
  */
 void Board::drawForeground(QPainter *painter, const QRectF &rect) {
     if (!fg.isNull() && !fg.isEmpty()) {
-        painter->save();
         painter->setFont(ff);
         painter->drawText(rect, Qt::AlignCenter, fg);
-        painter->restore();
     }
 }
 

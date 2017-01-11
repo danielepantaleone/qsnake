@@ -90,7 +90,5 @@ QPainterPath Food::shape() const {
  * @param painter The painter to be used for the rendering.
  */
 void Food::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
-    painter->save();
     painter->fillPath(shape(), FOOD_FOREGROUND_BRUSH);
-    painter->restore();
 }

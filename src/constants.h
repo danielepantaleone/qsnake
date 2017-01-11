@@ -27,6 +27,7 @@ const QBrush    BOARD_BACKGROUND_BRUSH  = QBrush(QColor(177, 216, 123, 255));
 const int       BOARD_CELL_PIXEL_SIZE   = 12;
 const int       BOARD_CELL_COUNT_X      = 32;
 const int       BOARD_CELL_COUNT_Y      = 32;
+const int       BOARD_FONT_PIZEL_SIZE   = 14;
 const int       BOARD_ORIGIN_X          = 0;
 const int       BOARD_ORIGIN_Y          = 0;
 const int       BOARD_HEIGHT            = BOARD_CELL_PIXEL_SIZE * BOARD_CELL_COUNT_Y;

@@ -206,7 +206,5 @@ QPainterPath Snake::shape() const {
  * @param painter The painter to be used for the rendering.
  */
 void Snake::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
-    painter->save();
     painter->fillPath(shape(), SNAKE_FOREGROUND_BRUSH);
-    painter->restore();
 }

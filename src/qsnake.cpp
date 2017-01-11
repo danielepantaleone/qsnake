@@ -80,6 +80,7 @@ void QSnake::setupUI() {
     board->setSceneRect(BOARD_ORIGIN_X, BOARD_ORIGIN_Y, BOARD_WIDTH, BOARD_HEIGHT);
     board->setItemIndexMethod(Board::BspTreeIndex);
     view->setCacheMode(QGraphicsView::CacheNone);
+    view->setOptimizationFlag(QGraphicsView::DontSavePainterState);
     view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     setAttribute(Qt::WA_QuitOnClose);
     setCentralWidget(view);
