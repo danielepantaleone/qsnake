@@ -17,98 +17,216 @@
  * along with Foobar. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "board.h"
 #include "constants.h"
-#include "game.h"
+#include "food.h"
 #include "qsnake.h"
+#include "snake.h"
 
-#include <QApplication>
-#include <QDesktopWidget>
-#include <QMenu>
-#include <QMenuBar>
+#include <QFontDatabase>
+#include <QTimer>
 
 QSnake::QSnake(QWidget *parent)
-    : QMainWindow(parent),
-      board(new Board(this)),
-      game(new Game(*board, this)),
-      view(new QGraphicsView(board, this)) {
-    setupActions();
-    setupMenus();
-    setupSlots();
-    setupUI();
+    : QWidget(parent),
+      m_finished(false),
+      m_paused(true),
+      m_speed(9),
+      m_score(0),
+      m_food(new Food(this)),
+      m_snake(new Snake(this)),
+      m_timer(new QTimer(this)) {
+    setFixedSize(BOARD_WIDTH, BOARD_HEIGHT);
+    setMouseTracking(false);
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
+    m_food->move(m_snake);
+    m_timer->setInterval(FRAME_MSEC);
+    m_timer->start();
 }
 
 QSnake::~QSnake() {}
 
 /**
- * Initialize QSnake main actions.
+ * End the current game.
  */
-void QSnake::setupActions() {
-    newGameAction = new QAction(tr("&New Game"), this);
-    newGameAction->setShortcut(QKeySequence::New);
-    newGameAction->setStatusTip(tr("Launch a new game"));
-    connect(newGameAction, &QAction::triggered, this, &QSnake::newGame);
-    quitAction = new QAction(tr("&Quit"), this);
-    quitAction->setShortcut(QKeySequence::Quit);
-    quitAction->setStatusTip(tr("Quit QSnake"));
-    connect(quitAction, &QAction::triggered, this, &QSnake::close);
+void QSnake::finish() {
+    m_finished = true;
+    disconnect(m_timer, SIGNAL(timeout()), this, SLOT(frame()));
 }
 
 /**
- * Initialize QSnake menus.
+ * Pause the game.
  */
-void QSnake::setupMenus() {
-    QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
-    fileMenu->addAction(newGameAction);
-    fileMenu->addSeparator();
-    fileMenu->addAction(quitAction);
+void QSnake::pause() {
+    disconnect(m_timer, SIGNAL(timeout()), this, SLOT(frame()));
+    m_paused = true;
 }
 
 /**
- * Initialize QSnake custom slots.
+ * Restart the game.
  */
-void QSnake::setupSlots() {
-    connect(game, SIGNAL(gameOver()), this, SLOT(onGameOver()));
-    connect(game, SIGNAL(score(int)), this, SLOT(onScore(int)));
+void QSnake::restart() {
+    m_snake->reset();
+    m_food->move(m_snake);
+    m_finished = false;
+    m_paused = true;
+    m_score = 0;
 }
 
 /**
- * Setup QSnake user interface.
+ * Resume the game.
  */
-void QSnake::setupUI() {
-    board->setBackgroundBrush(BOARD_BACKGROUND_BRUSH);
-    board->setSceneRect(BOARD_ORIGIN_X, BOARD_ORIGIN_Y, BOARD_WIDTH, BOARD_HEIGHT);
-    board->setItemIndexMethod(Board::BspTreeIndex);
-    view->setCacheMode(QGraphicsView::CacheNone);
-    view->setOptimizationFlag(QGraphicsView::DontSavePainterState);
-    view->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-    setAttribute(Qt::WA_QuitOnClose);
-    setCentralWidget(view);
-    setFixedSize(BOARD_WIDTH, BOARD_HEIGHT);
-    setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
-    move(QApplication::desktop()->screen()->rect().center() - rect().center());
+void QSnake::resume() {
+    m_paused = false;
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(frame()));
 }
 
 /**
- * Qt slot which triggers the start of a new game.
+ * Qt slot which take care of advancing the game and updating the UI.
  */
-void QSnake::newGame() {
-    game->restart();
+void QSnake::frame() {
+    if (!m_paused && !m_finished) {
+        if (m_snake->collision(m_snake->nextPos())) {
+            finish();
+        } else {
+            m_snake->move();
+            if (m_snake->eat(m_food)) {
+                m_food->move(m_snake);
+                m_score += m_speed;
+            }
+        }
+    }
 }
 
 /**
- * Qt slot which is triggered everytime the game ends.
- */
-void QSnake::onGameOver() {
-    game->setFinished(true);
-    board->setForeground(QString("GAME OVER"));
-}
-
-/**
- * Qt slot which is exevuted everytime the user score.
+ * Filter intercepted events.
  *
- * @param score The amount of score.
+ * @param o The QObject which generated the event.
+ * @param e The QEvent generated.
+ * @return True if the event has been handled locally, False otherwise.
  */
-void QSnake::onScore(int s) {
+bool QSnake::eventFilter(QObject *o, QEvent *e) {
+    if (e->type() == QEvent::KeyPress) {
+        keyPressEvent((QKeyEvent *)e);
+        return true;
+    }
+    return QObject::eventFilter(o, e);
+}
 
+/**
+ * Executed when a key is pressed.
+ *
+ * @param e The corresponding QKeyEvent.
+ */
+void QSnake::keyPressEvent(QKeyEvent *e) {
+
+    if (e->key() == Qt::Key_Space)
+        m_paused ? resume() : pause();
+
+    if (!m_paused && !m_finished) {
+        switch (e->key()) {
+            case Qt::Key_Left:
+                m_snake->turnLeft();
+                break;
+            case Qt::Key_Right:
+                m_snake->turnRight();
+                break;
+            case Qt::Key_Up:
+                m_snake->turnUp();
+                break;
+            case Qt::Key_Down:
+                m_snake->turnDown();
+                break;
+            default:
+                break;
+        }
+    }
+
+}
+
+/**
+ * Render the QSnake board together with its components.
+ */
+void QSnake::paintEvent(QPaintEvent *) {
+    QPainter p;
+    p.begin(this);
+    renderBoard(&p);
+    renderFood(&p);
+    renderSnake(&p);
+    renderPaused(&p);
+    p.end();
+
+}
+
+/**
+ * Render the board.
+ *
+ * @param p The active QPainter.
+ */
+void QSnake::renderBoard(QPainter *p) {
+    p->save();
+    p->fillRect(rect(), BOARD_BACKGROUND_BRUSH);
+    p->restore();
+}
+
+/**
+ * Render the Food.
+ *
+ * @param p The active QPainter.
+ */
+void QSnake::renderFood(QPainter *p) {
+    p->save();
+    p->fillRect(QSnake::mapToBoard(m_food->pos()), FOOD_FOREGROUND_BRUSH);
+    p->restore();
+}
+
+/**
+ * Render the game paused status.
+ *
+ * @param p The active QPainter.
+ */
+void QSnake::renderPaused(QPainter *p) {
+    if (m_paused) {
+        QFont f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+        f.setPixelSize(TEXT_SIZE);
+        p->save();
+        p->drawText(rect(), Qt::AlignCenter, TEXT_PAUSED);
+        p->restore();
+    }
+}
+
+
+/**
+ * Render the QSnake food.
+ *
+ * @param p The active QPainter.
+ */
+void QSnake::renderSnake(QPainter *p) {
+    QPainterPath path;
+    for (QPointF point: *m_snake->trail())
+        path.addRect(QSnake::mapToBoard(point));
+    p->save();
+    p->fillPath(path, SNAKE_FOREGROUND_BRUSH);
+    p->restore();
+}
+
+/**
+ * Map the given value to the board.
+ *
+ * @param v The value to map.
+ * @return A 'double' mapped according with the board cell size.
+ */
+double QSnake::mapToBoard(double v) {
+    return v * BOARD_CELL_PIXEL_SIZE;
+}
+
+/**
+ * Map the given QPointF to the board.
+ *
+ * @param p The QPointF to map.
+ * @return A 'QRectF' representing the QPointF mapped over the board.
+ */
+QRectF QSnake::mapToBoard(QPointF p) {
+    return QRectF(
+        QPointF(mapToBoard(p.x()), mapToBoard(p.y())),
+        QPointF(mapToBoard(p.x() + 1), mapToBoard(p.y() + 1))
+    );
 }

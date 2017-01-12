@@ -10,14 +10,10 @@ set(SOURCE_FILES
         src/main.cpp
         src/qsnake.h
         src/qsnake.cpp
-        src/game.h
-        src/game.cpp
         src/snake.h
         src/snake.cpp
-        src/board.h
-        src/board.cpp
         src/food.h
-        src/food.cpp)
+        src/food.cpp src/mainwindow.h src/mainwindow.cpp)
 
 find_package(Qt5Widgets REQUIRED)
 

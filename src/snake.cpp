@@ -17,28 +17,20 @@
  * along with Foobar. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "board.h"
 #include "constants.h"
 #include "food.h"
 #include "snake.h"
 
 #include <QPainter>
 
-Snake::Snake(Game *g) : game(g) {
-    reset();
-    setZValue(1.0);
+Snake::Snake(QObject *parent) : QObject(parent) {
+    m_direction = DirectionRight;
+    for (int i = 0; i < SNAKE_INITIAL_LENGTH; i++)
+        m_trail.append(QPointF(SNAKE_INITIAL_X - i, SNAKE_INITIAL_Y));
 }
 
 Snake::~Snake() {}
 
-/**
- * Returns the Snake current direction.
- *
- * @return Direction
- */
-Direction Snake::direction() {
-    return m_direction;
-}
 
 /**
  * Detect possible Snake collision on the given point.
@@ -46,53 +38,37 @@ Direction Snake::direction() {
  * @return True if the Snake will collide with itself or the Board limits, False otherwise;
  */
 bool Snake::collision(QPointF p) {
-    if (p.x() < BOARD_ORIGIN_X || p.x() >= BOARD_CELL_COUNT_X)
+    if (p.x() < BOARD_ORIGIN_X || p.x() >= BOARD_CELL_LENGTH_X)
         return true;
-    if (p.y() < BOARD_ORIGIN_Y || p.y() >= BOARD_CELL_COUNT_Y)
+    if (p.y() < BOARD_ORIGIN_Y || p.y() >= BOARD_CELL_LENGTH_Y)
         return true;
-    for (int i = 1; i < m_trail.size(); i++)
-        if (p == m_trail.at(i))
-            return true;
+    return m_trail.contains(p);
+}
+
+/**
+ * Let the current Snake eat the given food (and grow in its size).
+ *
+ * @param f A pointer to the Food instance.
+ * @return True if the Snake ate the Foof, False otherwise.
+ */
+bool Snake::eat(Food *f) {
+    if (pos() == f->pos()) {
+        m_trail.append(QPointF(m_trail.back()));
+        return true;
+    }
     return false;
 }
 
 /**
- * Let the current Snake eat the given food if necessary.
- *
- * @param f
- * @return
- */
-bool Snake::eat(Food *f) {
-    return head() == f->gridPos();
-}
-
-/**
- * Returns a QPointF which is the head of the Snake in the board.
- *
- * @return QPointF
- */
-QPointF Snake::head() {
-    return m_trail.front();
-}
-
-/**
- * Increase the size of the Snake.
- */
-void Snake::grow() {
-    m_trail.append(QPointF(m_trail.back()));
-}
-
-/**
- * Move the snake in the board by one cell.
+ * Advance the Snake in the board by one cell.
  */
 void Snake::move() {
-    prepareGeometryChange();
     m_trail.removeLast();
     m_trail.prepend(nextPos());
 }
 
 /**
- * Returns the Snake next position.
+ * Returns the Snake next (head) position.
  *
  * @return QPointF
  */
@@ -110,6 +86,15 @@ QPointF Snake::nextPos() {
     return QPointF(m_trail.front());
 }
 
+/**
+ * Returns a QPointF which is the position (head) of the Snake in the board.
+ *
+ * @return QPointF
+ */
+QPointF Snake::pos() {
+    return m_trail.front();
+}
+
 
 /**
  * Reset the Snake to its initial state.
@@ -121,90 +106,47 @@ void Snake::reset() {
         m_trail.append(QPointF(SNAKE_INITIAL_X - i, SNAKE_INITIAL_Y));
 }
 
-
 /**
- * Set the Snake direction.
- *
- * @param d Direction
- */
-void Snake::setDirection(Direction direction) {
-    if (direction == DirectionRight) {
-        if (m_direction == DirectionLeft)
-            return;
-        if (m_trail.front().x() == BOARD_CELL_COUNT_X - 1)
-            return;
-    }
-    if (direction == DirectionLeft) {
-        if (m_direction == DirectionRight)
-            return;
-        if (m_trail.front().x() == BOARD_ORIGIN_X)
-            return;
-    }
-    if (direction == DirectionDown) {
-        if (m_direction == DirectionUp)
-            return;
-        if (m_trail.front().y() == BOARD_CELL_COUNT_Y - 1)
-            return;
-    }
-    if (direction == DirectionUp) {
-        if (m_direction == DirectionDown)
-            return;
-        if (m_trail.front().y() == BOARD_ORIGIN_Y)
-            return;
-    }
-    m_direction = direction;
-}
-
-/**
- * Returns a pointer to the Snake trail QList.
+ * Returns a pointer to the Snake trail.
  *
  * @return QList<QPointF> *
  */
-QList<QPointF> * Snake::trail() {
+QList<QPointF> *Snake::trail() {
     return &m_trail;
 }
 
 /**
- * Returns the Snake bounding rectangle as QRectF.
- *
- * @return QRectF
+ * Turn the Snake down.
  */
-QRectF Snake::boundingRect() const {
-    double minX = 0;
-    double minY = 0;
-    double maxX = 0;
-    double maxY = 0;
-    for (QPointF p : m_trail) {
-        minX = qMin(minX, p.x());
-        minY = qMin(minY, p.y());
-        maxX = qMax(maxX, p.x());
-        maxY = qMax(maxY, p.y());
-    }
-    minX = Board::mapToBoard(minX);
-    minY = Board::mapToBoard(minY);
-    maxX = Board::mapToBoard(maxX + 1);
-    maxY = Board::mapToBoard(maxY + 1);
-    return QRectF(QPointF(minX, minY), QPointF(maxX, maxY));
+void Snake::turnDown() {
+    if (m_direction != DirectionUp)
+        if (m_trail.front().y() != BOARD_CELL_LENGTH_Y - 1)
+            m_direction = DirectionDown;
 }
 
 /**
- * Returns the 'shape' of the Snake as QPainterPath (used for collision detection).
- *
- * @return QPainterPath
+ * Turn the Snake left.
  */
-QPainterPath Snake::shape() const {
-    QPainterPath path;
-    path.setFillRule(Qt::WindingFill);
-    for (QPointF p : m_trail)
-        path.addRect(Board::mapToBoard(p));
-    return path;
+void Snake::turnLeft() {
+    if (m_direction != DirectionRight)
+        if (m_trail.front().x() != BOARD_ORIGIN_X)
+            m_direction = DirectionLeft;
 }
 
 /**
- * Renders the Snake shape.
- *
- * @param painter The painter to be used for the rendering.
+ * Turn the Snake right.
  */
-void Snake::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
-    painter->fillPath(shape(), SNAKE_FOREGROUND_BRUSH);
+void Snake::turnRight() {
+    if (m_direction != DirectionLeft)
+        if (m_trail.front().x() != BOARD_CELL_LENGTH_X - 1)
+            m_direction = DirectionRight;
+}
+
+/**
+ * Turn the Snake up.
+ */
+void Snake::turnUp() {
+    if (m_direction != DirectionDown)
+        if (m_trail.front().y() != BOARD_ORIGIN_Y)
+            m_direction = DirectionUp;
 }

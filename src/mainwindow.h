@@ -17,36 +17,39 @@
  * along with Foobar. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QSNAKE_BOARD_H
-#define QSNAKE_BOARD_H
+#ifndef QSNAKE_MAINWINDOW_H
+#define QSNAKE_MAINWINDOW_H
 
-#include <QFont>
-#include <QGraphicsScene>
+#include "qsnake.h"
 
-class Board : public QGraphicsScene {
+#include <QAction>
+#include <QMainWindow>
+
+class MainWindow : public QMainWindow {
 
     Q_OBJECT
 
     public:
 
-        Board(QObject *parent = 0);
-        ~Board();
-
-        static double mapToBoard(double v);
-        static QRectF mapToBoard(QPointF p);
-
-        void setForeground(QString s);
-        QString &foreground();
-
-    protected:
-
-        void drawForeground(QPainter *painter, const QRectF &rect);
+        MainWindow(QWidget *parent = 0);
+        ~MainWindow();
 
     private:
 
-        QFont ff;
-        QString fg;
+        QSnake *m_qsnake;
+
+        QAction *newGameAction;
+        QAction *quitAction;
+
+        void setupActions();
+        void setupControls();
+        void setupMenus();
+        void setupUI();
+
+    private slots:
+
+        void newGame();
 
 };
 
-#endif //QSNAKE_BOARD_H
+#endif //QSNAKE_MAINWINDOW_H

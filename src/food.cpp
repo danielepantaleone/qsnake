@@ -17,78 +17,42 @@
  * along with Foobar. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "board.h"
 #include "constants.h"
 #include "food.h"
 #include "snake.h"
 
-#include <QPainter>
-
-Food::Food(Game *g) : game(g) {
-    setZValue(0.0);
-}
+Food::Food(QObject *parent) : QObject(parent) {}
 
 Food::~Food() {}
 
 /**
- * Returns the Snake bounding rectangle as QRectF.
- *
- * @return QRectF
- */
-QRectF Food::boundingRect() const {
-    return Board::mapToBoard(m_gridPos);
-}
-
-/**
- * Returns the Food grid position.
+ * Returns the Food position.
  *
  * @return QPointF
  */
-QPointF Food::gridPos() {
-    return m_gridPos;
+QPointF Food::pos() {
+    return m_pos;
 }
 
 /**
- * Move the food grid position according with the trail of the given Snake.
+ * Move the food position according with the trail of the given Snake.
  *
  * @param s A pointer to the active Snake.
  */
 void Food::move(Snake *s) {
-    QPointF p;
-    do {
-        p.setX(qrand() % (BOARD_CELL_COUNT_X - BOARD_ORIGIN_X) + BOARD_ORIGIN_X);
-        p.setY(qrand() % (BOARD_CELL_COUNT_X - BOARD_ORIGIN_X) + BOARD_ORIGIN_X);
-    } while(s->trail()->contains(p));
-    setGridPos(p);
+    QList<QPointF> board;
+    for (int i = 0; i < BOARD_CELL_LENGTH_X; i++)
+        for (int j = 0; j < BOARD_CELL_LENGTH_Y; j++)
+            if (!s->trail()->contains(QPointF(i, j)))
+                board.append(QPointF(i, j));
+    setPos(board.at(qrand() % board.size()));
 }
 
 /**
- * Set the Food position on the grid.
+ * Set the Food position.
  *
  * @param p QPointF
  */
-void Food::setGridPos(QPointF p) {
-    m_gridPos = p;
-    prepareGeometryChange();
-}
-
-/**
- * Returns the 'shape' of the Snake as QPainterPath (used for collision detection).
- *
- * @return QPainterPath
- */
-QPainterPath Food::shape() const {
-    QPainterPath path;
-    path.setFillRule(Qt::WindingFill);
-    path.addRect(Board::mapToBoard(m_gridPos));
-    return path;
-}
-
-/**
- * Renders the Snake shape.
- *
- * @param painter The painter to be used for the rendering.
- */
-void Food::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
-    painter->fillPath(shape(), FOOD_FOREGROUND_BRUSH);
+void Food::setPos(QPointF p) {
+    m_pos = p;
 }

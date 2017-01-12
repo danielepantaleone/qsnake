@@ -20,16 +20,16 @@
 #ifndef QSNAKE_QSNAKE_H
 #define QSNAKE_QSNAKE_H
 
-#include "board.h"
-#include "game.h"
-
-#include <QAction>
-#include <QGraphicsScene>
-#include <QGraphicsView>
-#include <QMainWindow>
+#include <QPaintEvent>
+#include <QPainter>
+#include <QWidget>
 
 
-class QSnake : public QMainWindow {
+class Food;
+
+class Snake;
+
+class QSnake : public QWidget {
 
     Q_OBJECT
 
@@ -38,27 +38,39 @@ class QSnake : public QMainWindow {
         QSnake(QWidget *parent = 0);
         ~QSnake();
 
+        void finish();
+        void pause();
+        void restart();
+        void resume();
+
+        static double mapToBoard(double v);
+        static QRectF mapToBoard(QPointF p);
+
+    protected:
+
+        bool eventFilter(QObject *o, QEvent *e);
+        void keyPressEvent(QKeyEvent *e);
+        void paintEvent(QPaintEvent *);
+
     private:
 
-        Board *board;
-        Game *game;
+        bool m_finished;
+        bool m_paused;
+        int m_score;
+        int m_speed;
+        Food *m_food;
+        Snake *m_snake;
+        QTimer *m_timer;
 
-        QAction *newGameAction;
-        QAction *quitAction;
-        QGraphicsView *view;
-
-        void setupActions();
-        void setupMenus();
-        void setupSlots();
-        void setupUI();
+        void renderBoard(QPainter *p);
+        void renderFood(QPainter *p);
+        void renderPaused(QPainter *p);
+        void renderSnake(QPainter *p);
 
     private slots:
 
-        void newGame();
-        void onGameOver();
-        void onScore(int);
+        void frame();
 
 };
-
 
 #endif //QSNAKE_QSNAKE_H

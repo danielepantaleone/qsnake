@@ -18,7 +18,7 @@
  */
 
 
-#include "qsnake.h"
+#include "mainwindow.h"
 
 #include <QApplication>
 #include <QTime>
@@ -26,7 +26,7 @@
 int main(int argc, char *argv[]) {
     qsrand((uint)QTime::currentTime().msec());
     QApplication a(argc, argv);
-    QSnake qsnake;
-    qsnake.show();
+    MainWindow m;
+    m.show();
     return a.exec();
 }

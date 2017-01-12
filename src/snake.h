@@ -21,39 +21,35 @@
 #define QSNAKE_SNAKE_H
 
 #include "constants.h"
-#include "game.h"
 
-#include <QGraphicsItem>
+#include <QObject>
 #include <QRectF>
 
 class Food;
 
-class Snake : public QGraphicsItem {
+class Snake : public QObject {
+
+    Q_OBJECT
 
     public:
 
-        Snake(Game *g);
+        Snake(QObject *parent = 0);
         ~Snake();
 
-        QPointF head();
-        Direction direction();
         bool collision(QPointF p);
         bool eat(Food *f);
-        void grow();
         void move();
-        void reset();
         QPointF nextPos();
-        void setDirection(Direction direction);
-
-        QList<QPointF> * trail();
-
-        QRectF boundingRect() const;
-        QPainterPath shape() const;
-        void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
+        QPointF pos();
+        void reset();
+        QList<QPointF> *trail();
+        void turnDown();
+        void turnLeft();
+        void turnRight();
+        void turnUp();
 
     private:
 
-        Game *game;
         Direction m_direction;
         QList<QPointF> m_trail;
 
