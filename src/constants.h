@@ -23,23 +23,32 @@
 #include <QBrush>
 #include <QColor>
 
+const QBrush    BORDER_BACKGROUND_BRUSH = QBrush(QColor(0, 0, 0, 255));
+const QBrush    BORDER_FOREGROUND_BRUSH = QBrush(QColor(177, 216, 123, 255));
+const int       BORDER_SIZE             = 18;
 const QBrush    BOARD_BACKGROUND_BRUSH  = QBrush(QColor(177, 216, 123, 255));
-const int       BOARD_CELL_PIXEL_SIZE   = 12;
-const int       BOARD_CELL_LENGTH_X     = 32;
-const int       BOARD_CELL_LENGTH_Y     = 32;
+const int       BOARD_CELL_SIZE         = 12;
+const int       BOARD_CELL_LENGTH_X     = 28;
+const int       BOARD_CELL_LENGTH_Y     = 28;
 const int       BOARD_ORIGIN_X          = 0;
 const int       BOARD_ORIGIN_Y          = 0;
-const int       BOARD_HEIGHT            = BOARD_CELL_PIXEL_SIZE * BOARD_CELL_LENGTH_Y;
-const int       BOARD_WIDTH             = BOARD_CELL_PIXEL_SIZE * BOARD_CELL_LENGTH_X;
+const int       BOARD_HEIGHT            = BOARD_CELL_SIZE * BOARD_CELL_LENGTH_Y;
+const int       BOARD_WIDTH             = BOARD_CELL_SIZE * BOARD_CELL_LENGTH_X;
 const QBrush    FOOD_FOREGROUND_BRUSH   = QBrush(QColor(121, 123, 89, 255));
 const int       FRAME_MSEC              = 50;
+const int       FRAME_HANDICAP_COUNT    = 2;
 const QBrush    SNAKE_FOREGROUND_BRUSH  = QBrush(QColor(0, 25, 0, 255));
 const int       SNAKE_INITIAL_LENGTH    = 4;
 const int       SNAKE_INITIAL_X         = BOARD_CELL_LENGTH_X / 2 - 4;
 const int       SNAKE_INITIAL_Y         = BOARD_CELL_LENGTH_Y / 2 - 2;
 const QString   TEXT_GAME_OVER          = QString("GAME OVER");
 const QString   TEXT_PAUSED             = QString("PAUSED");
-const int       TEXT_SIZE               = 14;
+const int       TEXT_SIZE_1             = 10;
+const int       TEXT_SIZE_2             = 14;
+const int       QSNAKE_HEIGHT           = BOARD_HEIGHT + 2 * BORDER_SIZE;
+const QString   QSNAKE_TITLE            = QString("QSnake");
+const int       QSNAKE_WIDTH            = BOARD_WIDTH + 2 * BORDER_SIZE;
+const QString   QSNAKE_VERSION          = QString("1.0");
 
 
 enum Direction {

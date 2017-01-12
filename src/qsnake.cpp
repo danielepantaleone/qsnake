@@ -31,70 +31,23 @@ QSnake::QSnake(QWidget *parent)
       m_paused(true),
       m_speed(9),
       m_score(0),
+      m_handicap(0),
       m_food(new Food(this)),
       m_snake(new Snake(this)),
       m_timer(new QTimer(this)) {
-    setFixedSize(BOARD_WIDTH, BOARD_HEIGHT);
+    setFixedSize(QSNAKE_WIDTH, QSNAKE_HEIGHT);
     setMouseTracking(false);
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
     m_food->move(m_snake);
+    m_font1 = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    m_font1.setPixelSize(TEXT_SIZE_1);
+    m_font2 = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    m_font2.setPixelSize(TEXT_SIZE_2);
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
     m_timer->setInterval(FRAME_MSEC);
     m_timer->start();
 }
 
 QSnake::~QSnake() {}
-
-/**
- * End the current game.
- */
-void QSnake::finish() {
-    m_finished = true;
-    disconnect(m_timer, SIGNAL(timeout()), this, SLOT(frame()));
-}
-
-/**
- * Pause the game.
- */
-void QSnake::pause() {
-    disconnect(m_timer, SIGNAL(timeout()), this, SLOT(frame()));
-    m_paused = true;
-}
-
-/**
- * Restart the game.
- */
-void QSnake::restart() {
-    m_snake->reset();
-    m_food->move(m_snake);
-    m_finished = false;
-    m_paused = true;
-    m_score = 0;
-}
-
-/**
- * Resume the game.
- */
-void QSnake::resume() {
-    m_paused = false;
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(frame()));
-}
-
-/**
- * Qt slot which take care of advancing the game and updating the UI.
- */
-void QSnake::frame() {
-    if (!m_paused && !m_finished) {
-        if (m_snake->collision(m_snake->nextPos())) {
-            finish();
-        } else {
-            m_snake->move();
-            if (m_snake->eat(m_food)) {
-                m_food->move(m_snake);
-                m_score += m_speed;
-            }
-        }
-    }
-}
 
 /**
  * Filter intercepted events.
@@ -109,6 +62,36 @@ bool QSnake::eventFilter(QObject *o, QEvent *e) {
         return true;
     }
     return QObject::eventFilter(o, e);
+}
+
+/**
+ * End the current game.
+ */
+void QSnake::finish() {
+    m_finished = true;
+    disconnect(m_timer, SIGNAL(timeout()), this, SLOT(frame()));
+}
+
+/**
+ * Qt slot which take care of advancing the game and updating the UI.
+ */
+void QSnake::frame() {
+    if (!m_paused && !m_finished) {
+        if (m_snake->collision(m_snake->nextPos())) {
+            if (m_handicap < FRAME_HANDICAP_COUNT) {
+                m_handicap++;
+            } else {
+                finish();
+            }
+        } else {
+            m_handicap = 0;
+            m_snake->move();
+            if (m_snake->eat(m_food)) {
+                m_food->move(m_snake);
+                m_score += m_speed;
+            }
+        }
+    }
 }
 
 /**
@@ -143,17 +126,49 @@ void QSnake::keyPressEvent(QKeyEvent *e) {
 }
 
 /**
+ * Map the given value to the board.
+ *
+ * @param v The value to map.
+ * @return A 'double' mapped according with the board cell size.
+ */
+double QSnake::mapToBoard(double v) {
+    return v * BOARD_CELL_SIZE + BORDER_SIZE;
+}
+
+/**
+ * Map the given QPointF to the board.
+ *
+ * @param p The QPointF to map.
+ * @return A 'QRectF' representing the QPointF mapped over the board.
+ */
+QRectF QSnake::mapToBoard(QPointF p) {
+    return QRectF(
+        QPointF(mapToBoard(p.x()), mapToBoard(p.y())),
+        QPointF(mapToBoard(p.x() + 1), mapToBoard(p.y() + 1))
+    );
+}
+
+/**
  * Render the QSnake board together with its components.
  */
 void QSnake::paintEvent(QPaintEvent *) {
     QPainter p;
     p.begin(this);
+    renderBaseline(&p);
     renderBoard(&p);
     renderFood(&p);
     renderSnake(&p);
     renderPaused(&p);
+    renderGameOver(&p);
     p.end();
+}
 
+/**
+ * Pause the game.
+ */
+void QSnake::pause() {
+    disconnect(m_timer, SIGNAL(timeout()), this, SLOT(frame()));
+    m_paused = true;
 }
 
 /**
@@ -162,8 +177,28 @@ void QSnake::paintEvent(QPaintEvent *) {
  * @param p The active QPainter.
  */
 void QSnake::renderBoard(QPainter *p) {
+    QPointF p1(QSnake::mapToBoard(BOARD_ORIGIN_X), QSnake::mapToBoard(BOARD_ORIGIN_Y));
+    QPointF p2(QSnake::mapToBoard(BOARD_CELL_LENGTH_X), QSnake::mapToBoard(BOARD_CELL_LENGTH_Y));
     p->save();
-    p->fillRect(rect(), BOARD_BACKGROUND_BRUSH);
+    p->fillRect(QRectF(p1, p2), BOARD_BACKGROUND_BRUSH);
+    p->restore();
+}
+
+/**
+ * Render the board.
+ *
+ * @param p The active QPainter.
+ */
+void QSnake::renderBaseline(QPainter *p) {
+    QPointF p1(BORDER_SIZE, 0);
+    QPointF p2(BORDER_SIZE + BOARD_WIDTH, BORDER_SIZE);
+    QRectF topbar = QRectF(p1, p2);
+    p->save();
+    p->fillRect(rect(), BORDER_BACKGROUND_BRUSH);
+    p->setFont(m_font1);
+    p->setPen(QPen(BORDER_FOREGROUND_BRUSH.color()));
+    p->drawText(topbar, Qt::AlignLeft|Qt::AlignVCenter, QSNAKE_TITLE + " v" + QSNAKE_VERSION);
+    p->drawText(topbar, Qt::AlignRight|Qt::AlignVCenter, QString::number(m_score));
     p->restore();
 }
 
@@ -179,20 +214,32 @@ void QSnake::renderFood(QPainter *p) {
 }
 
 /**
+ * Render the game over status.
+ *
+ * @param p The active QPainter.
+ */
+void QSnake::renderGameOver(QPainter *p) {
+    if (m_finished) {
+        p->save();
+        p->setFont(m_font2);
+        p->drawText(rect(), Qt::AlignCenter, TEXT_GAME_OVER);
+        p->restore();
+    }
+}
+
+/**
  * Render the game paused status.
  *
  * @param p The active QPainter.
  */
 void QSnake::renderPaused(QPainter *p) {
-    if (m_paused) {
-        QFont f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-        f.setPixelSize(TEXT_SIZE);
+    if (m_paused && !m_finished) {
         p->save();
+        p->setFont(m_font2);
         p->drawText(rect(), Qt::AlignCenter, TEXT_PAUSED);
         p->restore();
     }
 }
-
 
 /**
  * Render the QSnake food.
@@ -209,24 +256,21 @@ void QSnake::renderSnake(QPainter *p) {
 }
 
 /**
- * Map the given value to the board.
- *
- * @param v The value to map.
- * @return A 'double' mapped according with the board cell size.
+ * Restart the game.
  */
-double QSnake::mapToBoard(double v) {
-    return v * BOARD_CELL_PIXEL_SIZE;
+void QSnake::restart() {
+    m_snake->reset();
+    m_food->move(m_snake);
+    m_finished = false;
+    m_paused = true;
+    m_score = 0;
+    m_handicap = 0;
 }
 
 /**
- * Map the given QPointF to the board.
- *
- * @param p The QPointF to map.
- * @return A 'QRectF' representing the QPointF mapped over the board.
+ * Resume the game.
  */
-QRectF QSnake::mapToBoard(QPointF p) {
-    return QRectF(
-        QPointF(mapToBoard(p.x()), mapToBoard(p.y())),
-        QPointF(mapToBoard(p.x() + 1), mapToBoard(p.y() + 1))
-    );
+void QSnake::resume() {
+    m_paused = false;
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(frame()));
 }

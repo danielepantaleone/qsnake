@@ -56,14 +56,19 @@ class QSnake : public QWidget {
 
         bool m_finished;
         bool m_paused;
+        int m_handicap;
         int m_score;
         int m_speed;
         Food *m_food;
         Snake *m_snake;
         QTimer *m_timer;
+        QFont m_font1;
+        QFont m_font2;
 
+        void renderBaseline(QPainter *p);
         void renderBoard(QPainter *p);
         void renderFood(QPainter *p);
+        void renderGameOver(QPainter *p);
         void renderPaused(QPainter *p);
         void renderSnake(QPainter *p);
 

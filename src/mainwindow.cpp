@@ -74,8 +74,8 @@ void MainWindow::setupMenus() {
 void MainWindow::setupUI() {
     setAttribute(Qt::WA_QuitOnClose);
     setCentralWidget(m_qsnake);
-    setFixedSize(BOARD_WIDTH, BOARD_HEIGHT);
-    setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
+    setFixedSize(QSNAKE_WIDTH, QSNAKE_HEIGHT);
+    setWindowTitle(QString(QSNAKE_TITLE + " v" + QSNAKE_VERSION));
     move(QApplication::desktop()->screen()->rect().center() - rect().center());
 }
 
