@@ -17,6 +17,7 @@
  * along with Foobar. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "constants.h"
 #include "mainwindow.h"
 
 #include <QApplication>
@@ -24,6 +25,8 @@
 
 int main(int argc, char *argv[]) {
     qsrand((uint)QTime::currentTime().msec());
+    QApplication::setApplicationName(QSNAKE_TITLE);
+    QApplication::setOrganizationName(QSNAKE_ORGANIZATION);
     QApplication a(argc, argv);
     MainWindow m;
     m.show();

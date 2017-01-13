@@ -37,11 +37,12 @@ QSnake::QSnake(QWidget *parent)
       m_timer(new QTimer(this)) {
     setFixedSize(QSNAKE_WIDTH, QSNAKE_HEIGHT);
     setMouseTracking(false);
-    m_food->move(m_snake);
+    m_record = m_settings.value("score/record", 0).toInt(),
     m_font1 = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     m_font1.setPixelSize(TEXT_SIZE_1);
     m_font2 = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     m_font2.setPixelSize(TEXT_SIZE_2);
+    m_food->move(m_snake);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
     m_timer->setInterval(FRAME_MSEC);
     m_timer->start();
@@ -70,6 +71,8 @@ bool QSnake::eventFilter(QObject *o, QEvent *e) {
 void QSnake::finish() {
     m_finished = true;
     disconnect(m_timer, SIGNAL(timeout()), this, SLOT(frame()));
+    if (m_record > m_settings.value("score/record", 0).toInt())
+        m_settings.setValue("score/record", m_record);
 }
 
 /**
@@ -89,6 +92,7 @@ void QSnake::frame() {
             if (m_snake->eat(m_food)) {
                 m_food->move(m_snake);
                 m_score += m_speed;
+                m_record = qMax(m_record, m_score);
             }
         }
     }
@@ -185,20 +189,24 @@ void QSnake::renderBoard(QPainter *p) {
 }
 
 /**
- * Render the board.
+ * Render the baseline.
  *
  * @param p The active QPainter.
  */
 void QSnake::renderBaseline(QPainter *p) {
     QPointF p1(BORDER_SIZE, 0);
     QPointF p2(BORDER_SIZE + BOARD_WIDTH, BORDER_SIZE);
-    QRectF topbar = QRectF(p1, p2);
+    QPointF p3(BORDER_SIZE, BORDER_SIZE + BOARD_HEIGHT);
+    QPointF p4(BORDER_SIZE + BOARD_WIDTH, 2 * BORDER_SIZE + BOARD_HEIGHT);
+    QRectF topBar = QRectF(p1, p2);
+    QRectF bottomBar = QRectF(p3, p4);
     p->save();
     p->fillRect(rect(), BORDER_BACKGROUND_BRUSH);
     p->setFont(m_font1);
     p->setPen(QPen(BORDER_FOREGROUND_BRUSH.color()));
-    p->drawText(topbar, Qt::AlignLeft|Qt::AlignVCenter, QSNAKE_TITLE + " v" + QSNAKE_VERSION);
-    p->drawText(topbar, Qt::AlignRight|Qt::AlignVCenter, QString::number(m_score));
+    p->drawText(topBar, Qt::AlignLeft|Qt::AlignVCenter, QSNAKE_TITLE + " v" + QSNAKE_VERSION);
+    p->drawText(topBar, Qt::AlignRight|Qt::AlignVCenter, QString::number(m_score));
+    p->drawText(bottomBar, Qt::AlignRight|Qt::AlignVCenter, TEXT_RECORD + ": " + QString::number(m_record));
     p->restore();
 }
 

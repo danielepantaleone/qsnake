@@ -22,8 +22,8 @@
 
 #include <QPaintEvent>
 #include <QPainter>
+#include <QSettings>
 #include <QWidget>
-
 
 class Food;
 
@@ -58,12 +58,14 @@ class QSnake : public QWidget {
         bool m_paused;
         int m_handicap;
         int m_score;
+        int m_record;
         int m_speed;
         Food *m_food;
         Snake *m_snake;
         QTimer *m_timer;
         QFont m_font1;
         QFont m_font2;
+        QSettings m_settings;
 
         void renderBaseline(QPainter *p);
         void renderBoard(QPainter *p);
