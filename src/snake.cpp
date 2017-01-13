@@ -27,6 +27,7 @@ Snake::Snake(QObject *parent) : QObject(parent) {
     m_direction = DirectionRight;
     for (int i = 0; i < SNAKE_INITIAL_LENGTH; i++)
         m_trail.append(QPointF(SNAKE_INITIAL_X - i, SNAKE_INITIAL_Y));
+
 }
 
 Snake::~Snake() {}
@@ -73,7 +74,17 @@ void Snake::move() {
  * @return QPointF
  */
 QPointF Snake::nextPos() {
-    switch (m_direction) {
+    return nextPos(m_direction);
+}
+
+/**
+ * Returns the Snake next (head) position according with the given direction.
+ *
+ * @param direction The direction to use to calculate the next (head) position.
+ * @return QPointF
+ */
+QPointF Snake::nextPos(Direction direction) {
+    switch (direction) {
         case DirectionLeft:
             return QPointF(m_trail.front()) + QPointF(-1, 0);
         case DirectionUp:
@@ -121,7 +132,8 @@ QList<QPointF> *Snake::trail() {
 void Snake::turnDown() {
     if (m_direction != DirectionUp)
         if (m_trail.front().y() != BOARD_CELL_LENGTH_Y - 1)
-            m_direction = DirectionDown;
+            if (nextPos(DirectionDown) != m_trail.at(1))
+                m_direction = DirectionDown;
 }
 
 /**
@@ -130,7 +142,8 @@ void Snake::turnDown() {
 void Snake::turnLeft() {
     if (m_direction != DirectionRight)
         if (m_trail.front().x() != BOARD_ORIGIN_X)
-            m_direction = DirectionLeft;
+            if (nextPos(DirectionLeft) != m_trail.at(1))
+                m_direction = DirectionLeft;
 }
 
 /**
@@ -139,7 +152,8 @@ void Snake::turnLeft() {
 void Snake::turnRight() {
     if (m_direction != DirectionLeft)
         if (m_trail.front().x() != BOARD_CELL_LENGTH_X - 1)
-            m_direction = DirectionRight;
+            if (nextPos(DirectionRight) != m_trail.at(1))
+                m_direction = DirectionRight;
 }
 
 /**
@@ -148,5 +162,6 @@ void Snake::turnRight() {
 void Snake::turnUp() {
     if (m_direction != DirectionDown)
         if (m_trail.front().y() != BOARD_ORIGIN_Y)
-            m_direction = DirectionUp;
+            if (nextPos(DirectionUp) != m_trail.at(1))
+                m_direction = DirectionUp;
 }

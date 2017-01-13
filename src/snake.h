@@ -40,6 +40,7 @@ class Snake : public QObject {
         bool eat(Food *f);
         void move();
         QPointF nextPos();
+        QPointF nextPos(Direction direction);
         QPointF pos();
         void reset();
         QList<QPointF> *trail();
