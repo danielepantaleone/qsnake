@@ -37,6 +37,7 @@ QSnake::QSnake(QWidget *parent)
       m_timer(new QTimer(this)) {
     setFixedSize(QSNAKE_WIDTH, QSNAKE_HEIGHT);
     setMouseTracking(false);
+    m_speed = m_settings.value("options/level", FRAME_LEVEL_DEFAULT).toInt();
     m_record = m_settings.value("score/record", 0).toInt(),
     m_font1 = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     m_font1.setPixelSize(TEXT_SIZE_1);
@@ -44,7 +45,7 @@ QSnake::QSnake(QWidget *parent)
     m_font2.setPixelSize(TEXT_SIZE_2);
     m_food->move(m_snake);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(update()));
-    m_timer->setInterval(FRAME_MSEC);
+    m_timer->setInterval(FRAME_LEVEL_MSEC.value(m_speed));
     m_timer->start();
 }
 
@@ -206,6 +207,7 @@ void QSnake::renderBaseline(QPainter *p) {
     p->setPen(QPen(BORDER_FOREGROUND_BRUSH.color()));
     p->drawText(topBar, Qt::AlignLeft|Qt::AlignVCenter, QSNAKE_TITLE + " v" + QSNAKE_VERSION);
     p->drawText(topBar, Qt::AlignRight|Qt::AlignVCenter, QString::number(m_score));
+    p->drawText(bottomBar, Qt::AlignLeft|Qt::AlignVCenter, TEXT_LEVEL + ": " + QString::number(m_speed));
     p->drawText(bottomBar, Qt::AlignRight|Qt::AlignVCenter, TEXT_RECORD + ": " + QString::number(m_record));
     p->restore();
 }
@@ -273,6 +275,7 @@ void QSnake::restart() {
     m_paused = true;
     m_score = 0;
     m_handicap = 0;
+    m_timer->setInterval(FRAME_LEVEL_MSEC.value(m_speed));
 }
 
 /**
@@ -281,4 +284,15 @@ void QSnake::restart() {
 void QSnake::resume() {
     m_paused = false;
     connect(m_timer, SIGNAL(timeout()), this, SLOT(frame()));
+}
+
+/**
+ * Set the game speed.
+ *
+ * @param speed The speed level.
+ */
+void QSnake::setLevel(int speed) {
+    m_speed = speed;
+    m_settings.setValue("options/level", m_speed);
+    restart();
 }

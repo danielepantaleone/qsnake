@@ -42,6 +42,7 @@ class QSnake : public QWidget {
         void pause();
         void restart();
         void resume();
+        void setLevel(int speed);
 
         static double mapToBoard(double v);
         static QRectF mapToBoard(QPointF p);

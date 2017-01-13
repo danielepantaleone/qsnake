@@ -23,6 +23,7 @@
 #include "qsnake.h"
 
 #include <QAction>
+#include <QActionGroup>
 #include <QMainWindow>
 
 class MainWindow : public QMainWindow {
@@ -36,10 +37,12 @@ class MainWindow : public QMainWindow {
 
     private:
 
+        QSettings m_settings;
         QSnake *m_qsnake;
 
         QAction *newGameAction;
         QAction *quitAction;
+        QActionGroup *levelActions;
 
         void setupActions();
         void setupControls();
@@ -49,6 +52,7 @@ class MainWindow : public QMainWindow {
     private slots:
 
         void newGame();
+        void setGameLevel();
 
 };
 

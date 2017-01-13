@@ -40,14 +40,29 @@ MainWindow::~MainWindow() {}
  * Initialize QSnake main actions.
  */
 void MainWindow::setupActions() {
+    // NEW GAME
     newGameAction = new QAction(tr("&New Game"), this);
     newGameAction->setShortcut(QKeySequence::New);
     newGameAction->setStatusTip(tr("Launch a new game"));
     connect(newGameAction, &QAction::triggered, this, &MainWindow::newGame);
+    // APPLICATION QUIT
     quitAction = new QAction(tr("&Quit"), this);
     quitAction->setShortcut(QKeySequence::Quit);
     quitAction->setStatusTip(tr("Quit QSnake"));
     connect(quitAction, &QAction::triggered, this, &MainWindow::close);
+    // LEVEL CHANGE
+    levelActions = new QActionGroup(this);
+    levelActions->setExclusive(true);
+    QMap<int, int>::const_iterator i = FRAME_LEVEL_MSEC.constBegin();
+    while (i != FRAME_LEVEL_MSEC.constEnd()) {
+        QAction *action = new QAction(tr("Level ") +  QString::number(i.key()), this);
+        action->setCheckable(true);
+        action->setChecked(m_settings.value("options/level", FRAME_LEVEL_DEFAULT).toInt() == i.key());
+        action->setData(i.key());
+        connect(action, &QAction::triggered, this, &MainWindow::setGameLevel);
+        levelActions->addAction(action);
+        ++i;
+    }
 }
 
 /**
@@ -66,6 +81,9 @@ void MainWindow::setupMenus() {
     fileMenu->addAction(newGameAction);
     fileMenu->addSeparator();
     fileMenu->addAction(quitAction);
+    QMenu *levelMenu = menuBar()->addMenu(tr("&Level"));
+    for (QAction* a: levelActions->actions())
+        levelMenu->addAction(a);
 }
 
 /**
@@ -84,4 +102,11 @@ void MainWindow::setupUI() {
  */
 void MainWindow::newGame() {
     m_qsnake->restart();
+}
+
+/**
+ * Qt slot which changes the game level.
+ */
+void MainWindow::setGameLevel() {
+    m_qsnake->setLevel(((QAction *)sender())->data().toInt());
 }
