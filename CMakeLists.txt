@@ -1,22 +1,47 @@
-cmake_minimum_required(VERSION 3.6)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.6)
 
-project(qsnake)
+PROJECT(qsnake)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(SOURCE_FILES
-        src/constants.h
-        src/main.cpp
-        src/qsnake.h
-        src/qsnake.cpp
-        src/snake.h
-        src/snake.cpp
-        src/food.h
-        src/food.cpp src/mainwindow.h src/mainwindow.cpp)
+SET(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+SET(CMAKE_AUTOMOC ON)
 
-find_package(Qt5Widgets REQUIRED)
+SET(QSNAKE_SRCS
+  src/food.cpp
+  src/main.cpp
+  src/mainwindow.cpp
+  src/qsnake.cpp
+  src/snake.cpp
+)
 
-add_executable(qsnake ${SOURCE_FILES})
+SET(QSNAKE_HDRS
+  src/constants.h
+  src/food.h
+  src/mainwindow.h
+  src/qsnake.h
+  src/snake.h
+)
 
-target_link_libraries(qsnake Qt5::Widgets)
+FIND_PACKAGE(Qt5Widgets REQUIRED)
+
+IF(APPLE)
+  SET_SOURCE_FILES_PROPERTIES(${CMAKE_CURRENT_SOURCE_DIR}/resources/qsnake.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  SET(QSNAKE_SRCS ${QSNAKE_SRCS} ${CMAKE_CURRENT_SOURCE_DIR}/resources/qsnake.icns)
+ENDIF(APPLE)
+
+ADD_EXECUTABLE(QSnake MACOSX_BUNDLE ${QSNAKE_SRCS} ${QSNAKE_HDRS})
+
+TARGET_LINK_LIBRARIES(QSnake Qt5::Widgets)
+
+MESSAGE(${CMAKE_INSTALL_PREFIX}/bin/QSnake)
+
+SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/QSnake")
+SET(DIRS ${QT_LIBRARY_DIRS})
+SET(PLUGINS_DEST_DIR bin)
+SET(QT_CONF_DEST_DIR bin)
+IF(APPLE)
+  SET(APPS "\${CMAKE_INSTALL_PREFIX}/QSnake.app")
+  SET(PLUGINS_DEST_DIR QSnake.app/Contents/MacOS)
+  SET(QT_CONF_DEST_DIR QSnake.app/Contents/Resources)
+  SET_TARGET_PROPERTIES(QSnake PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/resources/Info.plist.in)
+ENDIF(APPLE)
