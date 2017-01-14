@@ -50,10 +50,10 @@ const QString         TEXT_RECORD             = QString("RECORD");
 const int             TEXT_SIZE_1             = 10;
 const int             TEXT_SIZE_2             = 14;
 const int             QSNAKE_HEIGHT           = BOARD_HEIGHT + 2 * BORDER_SIZE;
-const QString         QSNAKE_ORGANIZATION     = QString("Daniele Pantaleone");
-const QString         QSNAKE_TITLE            = QString("QSnake");
+const QString         QSNAKE_ORGANIZATION     = QString(APP_AUTHOR);
+const QString         QSNAKE_TITLE            = QString(APP_NAME);
 const int             QSNAKE_WIDTH            = BOARD_WIDTH + 2 * BORDER_SIZE;
-const QString         QSNAKE_VERSION          = QString("1.0");
+const QString         QSNAKE_VERSION          = QString(APP_VERSION);
 
 enum Direction {
     DirectionLeft,

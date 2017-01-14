@@ -5,9 +5,9 @@
         <key>CFBundleDevelopmentRegion</key>
         <string>English</string>
         <key>CFBundleExecutable</key>
-        <string>QSnake</string>
+        <string>${APP_NAME}</string>
         <key>CFBundleGetInfoString</key>
-        <string>1.0</string>
+        <string>${APP_VERSION}</string>
         <key>CFBundleIconFile</key>
         <string>qsnake.icns</string>
         <key>CFBundleIdentifier</key>
@@ -15,17 +15,17 @@
         <key>CFBundleInfoDictionaryVersion</key>
         <string>6.0</string>
         <key>CFBundleLongVersionString</key>
-        <string>1.0</string>
+        <string>${APP_VERSION}</string>
         <key>CFBundleName</key>
-        <string>QSnake</string>
+        <string>${APP_NAME}</string>
         <key>CFBundlePackageType</key>
         <string>APPL</string>
         <key>CFBundleShortVersionString</key>
-        <string>1.0</string>
+        <string>${APP_VERSION}</string>
         <key>CFBundleVersion</key>
-        <string>1.0</string>
+        <string>${APP_VERSION}</string>
         <key>NSHumanReadableCopyright</key>
-        <string>Copyright (C) 2017 Daniele Pantaleone</string>
+        <string>${APP_COPYRIGHT}</string>
         <key>NSPrincipalClass</key>
         <string>NSApplication</string>
         <key>NSHighResolutionCapable</key>
